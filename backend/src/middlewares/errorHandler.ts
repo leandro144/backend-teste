@@ -9,14 +9,13 @@ export function errorHandler(
   console.error(err);
 
   const status = err.status || 500;
-  const message = err.message || 'Internal Server Error';
-  const errorCode = err.errorCode || 'INTERNAL_ERROR';
-
-  console.error('[Error Detail]:', err);
-
+  const message = err.message || 'Unknown Error';
+  
   res.status(status).json({
     status,
-    errorCode,
-    message
+    message,
+    detail: err,
+    stack: err.stack,
+    hasDatabaseUrl: !!process.env.DATABASE_URL
   });
 }
