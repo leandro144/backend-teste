@@ -8,8 +8,13 @@ let pool: Pool;
 export async function getDatabase(): Promise<Pool> {
   if (pool) return pool;
 
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('CRITICAL: DATABASE_URL is not defined in environment variables!');
+  }
+
   pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString,
     ssl: {
       rejectUnauthorized: false // Required for Neon/Supabase on some environments
     }
