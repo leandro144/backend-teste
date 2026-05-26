@@ -12,6 +12,8 @@ export function errorHandler(
   const message = err.message || 'Internal Server Error';
   const errorCode = err.errorCode || 'INTERNAL_ERROR';
 
+  console.error('[Error Detail]:', err);
+
   res.status(status).json({
     status,
     errorCode,
