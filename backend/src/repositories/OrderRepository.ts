@@ -8,10 +8,13 @@ export interface Order {
 }
 
 export class OrderRepository {
+  async create(order: Order): Promise<void> {
+    const db = await getDatabase();
     await db.query(
       'INSERT INTO orders (id, productId, quantity, totalPrice) VALUES ($1, $2, $3, $4)',
       [order.id, order.productId, order.quantity, order.totalPrice]
     );
+  }
 
   async findByIdempotencyKey(key: string): Promise<any | null> {
     const db = await getDatabase();
