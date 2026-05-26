@@ -60,7 +60,7 @@ async function setupDb(p: Pool) {
 
     for (const [id, name, stock, price] of seedProducts) {
       await client.query(
-        'INSERT INTO products (id, name, stock, price) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
+        'INSERT INTO products (id, name, stock, price) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET stock = EXCLUDED.stock',
         [id, name, stock, price]
       );
     }
