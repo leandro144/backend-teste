@@ -20,7 +20,6 @@ export async function getDatabase(): Promise<Pool> {
 }
 
 async function setupDb(p: Pool) {
-  // Use a client from the pool to run migrations
   const client = await p.connect();
   try {
     await client.query(`
@@ -28,14 +27,14 @@ async function setupDb(p: Pool) {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         stock INTEGER NOT NULL,
-        price REAL NOT NULL
+        price DECIMAL(10,2) NOT NULL
       );
 
       CREATE TABLE IF NOT EXISTS orders (
         id TEXT PRIMARY KEY,
         productId TEXT NOT NULL,
         quantity INTEGER NOT NULL,
-        totalPrice REAL NOT NULL,
+        totalPrice DECIMAL(10,2) NOT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(productId) REFERENCES products(id)
       );
@@ -48,11 +47,10 @@ async function setupDb(p: Pool) {
       );
     `);
 
-    // Seed data if empty using ON CONFLICT to avoid errors on partial seeds
     const seedProducts = [
-      ['1', 'Capinha iPhone', 5, 99],
-      ['2', 'Carregador MagSafe', 10, 249],
-      ['3', 'AirPods Pro', 1, 1499]
+      ['1', 'Capinha iPhone', 5, 99.00],
+      ['2', 'Carregador MagSafe', 10, 249.00],
+      ['3', 'AirPods Pro', 1, 1499.00]
     ];
 
     for (const [id, name, stock, price] of seedProducts) {
