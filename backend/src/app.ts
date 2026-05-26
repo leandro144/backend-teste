@@ -19,8 +19,11 @@ app.use('/api', routes);
 
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running on port ${port}`);
-});
+// In Vercel serverless the app is imported directly — no listener needed
+if (process.env.VERCEL !== '1') {
+  app.listen(port, () => {
+    console.log(`[server]: Server is running on port ${port}`);
+  });
+}
 
 export default app;

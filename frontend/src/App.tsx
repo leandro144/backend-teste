@@ -16,7 +16,8 @@ interface ToastMessage {
   text: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Falls back to relative path so frontend + backend work on the same Vercel domain
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 function App() {
   const [products, setProducts] = useState<Product[]>([]);
