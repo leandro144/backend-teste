@@ -47,8 +47,12 @@ function App() {
     }, 4000);
   };
 
-  const handleCheckout = async (productId: string, quantity: number) => {
-    const idempotencyKey = uuidv4(); // In a real app, this could be persistent for the session/cart
+  const handleCheckout = async (
+    productId: string,
+    quantity: number,
+    idempotencyKey: string,
+    onSuccess: () => void,
+  ) => {
     setProcessingId(productId);
 
     try {
@@ -59,11 +63,13 @@ function App() {
       );
 
       showToast('success', `Sucesso! Pedido #${response.data.order.id.slice(0, 8)} criado.`);
-      fetchProducts(); // Refresh stock
+      onSuccess(); // rotate key so next purchase is a fresh attempt
+      fetchProducts();
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Falha na integração com ERP';
       showToast('error', msg);
       if (error.response?.status === 409) fetchProducts();
+      // keep the same idempotencyKey so a retry is safe
     } finally {
       setProcessingId(null);
     }
@@ -108,13 +114,20 @@ function App() {
 
 interface ProductCardProps {
   product: Product;
-  onCheckout: (id: string, qty: number) => void;
+  onCheckout: (id: string, qty: number, key: string, onSuccess: () => void) => void;
   disabled: boolean;
   isProcessing: boolean;
 }
 
 function ProductCard({ product, onCheckout, disabled, isProcessing }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1);
+  // Stable per-attempt key: generated once per card mount and reset after a successful purchase.
+  // This ensures that network retries re-use the same key while a new attempt gets a fresh one.
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(() => uuidv4());
+
+  const handleBuy = () => {
+    onCheckout(product.id, quantity, idempotencyKey, () => setIdempotencyKey(uuidv4()));
+  };
 
   return (
     <div className="product-card">
@@ -134,8 +147,8 @@ function ProductCard({ product, onCheckout, disabled, isProcessing }: ProductCar
           onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
           disabled={disabled || product.stock === 0}
         />
-        <button 
-          onClick={() => onCheckout(product.id, quantity)}
+        <button
+          onClick={handleBuy}
           disabled={disabled || product.stock === 0}
         >
           {isProcessing ? (

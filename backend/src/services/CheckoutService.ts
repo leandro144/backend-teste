@@ -44,10 +44,10 @@ export class CheckoutService {
       return order;
 
     } catch (err: any) {
-      // If ERP fails, we should ideally rollback the stock in this simple simulation.
-      // In a real system, we might use a Compensating Transaction or a Two-Phase Commit.
-      await this.productRepository.updateStock(productId, product.stock); // Simple rollback
-      
+      // Compensating transaction: restore the decremented units using a relative increment
+      // so concurrent transactions that may have also modified stock are not affected.
+      await this.productRepository.incrementStock(productId, quantity);
+
       const error: any = new Error(err.message || 'ERP Integration Failed');
       error.status = 503;
       error.errorCode = 'ERP_ERROR';

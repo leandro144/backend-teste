@@ -26,8 +26,9 @@ export class ProductRepository {
   }
 
   /**
-   * Atomic stock decrement
-   * This ensures we don't oversell by checking stock >= quantity in the same query.
+   * Atomic stock decrement with oversell guard.
+   * The WHERE stock >= quantity ensures only one transaction wins when multiple
+   * concurrent requests race for the last unit(s).
    */
   async decrementStock(id: string, quantity: number): Promise<boolean> {
     const db = await getDatabase();
@@ -36,5 +37,13 @@ export class ProductRepository {
       [quantity, id, quantity]
     );
     return (result.rowCount || 0) > 0;
+  }
+
+  async incrementStock(id: string, quantity: number): Promise<void> {
+    const db = await getDatabase();
+    await db.query(
+      'UPDATE products SET stock = stock + $1 WHERE id = $2',
+      [quantity, id]
+    );
   }
 }

@@ -16,6 +16,12 @@ export class OrderRepository {
     );
   }
 
+  async findById(id: string): Promise<Order | null> {
+    const db = await getDatabase();
+    const result = await db.query('SELECT * FROM orders WHERE id = $1', [id]);
+    return result.rows[0] ?? null;
+  }
+
   async findByIdempotencyKey(key: string): Promise<any | null> {
     const db = await getDatabase();
     const result = await db.query('SELECT * FROM idempotency_keys WHERE key = $1', [key]);

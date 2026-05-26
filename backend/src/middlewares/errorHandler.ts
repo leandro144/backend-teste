@@ -6,16 +6,17 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error(err);
-
   const status = err.status || 500;
-  const message = err.message || 'Unknown Error';
-  
+  const errorCode = err.errorCode || 'INTERNAL_ERROR';
+  const message = err.message || 'An unexpected error occurred';
+
+  if (status >= 500) {
+    console.error(`[${new Date().toISOString()}] ${req.method} ${req.path} — ${status} ${errorCode}:`, err.message);
+  }
+
   res.status(status).json({
     status,
+    errorCode,
     message,
-    detail: err,
-    stack: err.stack,
-    hasDatabaseUrl: !!process.env.DATABASE_URL
   });
 }
